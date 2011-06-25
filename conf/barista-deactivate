@@ -1,0 +1,34 @@
+#!/usr/bin/env sh
+
+rev_path=`pwd`
+rev_hash=`basename ${rev_path}`
+deploy_dir=`dirname ${rev_path}`
+
+# Check if cwd is in main symlink
+if [ -L ${rev_path} -a ${rev_hash} = 'main' ]
+then
+    rev_real_path=`readlink ${rev_path}`
+    rev_hash=`basename ${rev_real_path}`
+fi
+
+if [ ! -n ${rev_hash} ]
+then
+    echo "Can't obtain revision hash"
+    exit 1
+fi
+
+pid_path="${deploy_dir}/pid/${rev_hash}.pid"
+sock_path="${deploy_dir}/sock/${rev_hash}.sock"
+log_path="${deploy_dir}/log/${rev_hash}.log"
+env_path="${deploy_dir}/.env${rev_hash}"
+
+if [ -f ${pid_path} ]
+then
+    echo Killing process `cat ${pid_path}`
+    kill -9 `cat ${pid_path}`
+    rm -f ${pid_path}
+else
+    echo No pid file found: ${pid_path}
+fi
+
+rm -f ${sock_path}
